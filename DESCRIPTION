@@ -1,0 +1,5 @@
+Package: ggobservation
+Type: Package
+Title: Extension for ggplot2, which adds number of observations
+Version: 0.0.1.0
+RoxygenNote: 7.1.2
