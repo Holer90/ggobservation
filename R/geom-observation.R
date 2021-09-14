@@ -90,7 +90,7 @@ GeomObservation <- ggproto("GeomObservation", GeomText,
       data$hjust <- compute_just(data$hjust, data$x, data$y, data$angle)
     }
     
-    textGrob(
+    grid::textGrob(
       lab,
       data$x, data$y, default.units = "native",
       hjust = data$hjust, vjust = data$vjust,
