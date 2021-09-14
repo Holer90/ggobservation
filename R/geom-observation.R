@@ -95,7 +95,7 @@ GeomObservation <- ggproto("GeomObservation", GeomText,
       data$x, data$y, default.units = "native",
       hjust = data$hjust, vjust = data$vjust,
       rot = data$angle,
-      gp = gpar(
+      gp = grid::gpar(
         col = alpha(data$colour, data$alpha),
         fontsize = data$size * .pt,
         fontfamily = data$family,
