@@ -13,7 +13,9 @@ library(grid)
 StatObservationByPanel <- ggproto("StatObservationByPanel", Stat,
   extra_params = c("na.rm", "prefix", "suffix", "separation_factor"),
   compute_panel = function(data, scales) {
-    data %>% summarize(label=n(), x = max(data$x), y = max(data$y)) 
+    data %>% 
+      drop_na() %>%
+      summarize(label=n(), x = max(data$x, na.rm = TRUE), y = max(data$y, na.rm = TRUE)) 
   },
   finish_layer = function(self, data, params) {
     data %>% mutate(label = paste0(!!params$prefix, label, !!params$suffix)) %>%
@@ -28,7 +30,9 @@ StatObservationByPanel <- ggproto("StatObservationByPanel", Stat,
 StatObservationByGroup <- ggproto("StatObservationByGroup", Stat,
   extra_params = c("na.rm", "prefix", "suffix", "separation_factor"),
   compute_group = function(data, scales) {
-    data %>% summarize(label=n(), x = max(data$x), y = max(data$y))
+    data %>% 
+      drop_na() %>%
+      summarize(label=n(), x = max(data$x, na.rm = TRUE), y = max(data$y, na.rm = TRUE))
   },
   finish_layer = function(self, data, params) {
     data %>% mutate(label = paste0(!!params$prefix, label, !!params$suffix)) %>%
@@ -44,11 +48,6 @@ GeomObservation <- ggproto("GeomObservation", GeomText,
   ),
   draw_panel = function(data, panel_params, coord, parse = FALSE,
                         na.rm = FALSE, check_overlap = FALSE) {
-    
-    # assign to global variables
-    data_persist <<- data
-    panel_params_persist <<- panel_params
-    coord_persist <<- coord    
       
     if (data$force_position[[1]]) {
       
