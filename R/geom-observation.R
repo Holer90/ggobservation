@@ -14,7 +14,7 @@ StatObservationByPanel <- ggproto("StatObservationByPanel", Stat,
   extra_params = c("na.rm", "prefix", "suffix", "separation_factor"),
   compute_panel = function(data, scales) {
     data %>% 
-      drop_na() %>%
+      drop_na(one_of("x", "y")) %>%
       summarize(label=n(), x = max(data$x, na.rm = TRUE), y = max(data$y, na.rm = TRUE)) 
   },
   finish_layer = function(self, data, params) {
@@ -31,7 +31,7 @@ StatObservationByGroup <- ggproto("StatObservationByGroup", Stat,
   extra_params = c("na.rm", "prefix", "suffix", "separation_factor"),
   compute_group = function(data, scales) {
     data %>% 
-      drop_na() %>%
+      drop_na(one_of("x", "y")) %>%
       summarize(label=n(), x = max(data$x, na.rm = TRUE), y = max(data$y, na.rm = TRUE))
   },
   finish_layer = function(self, data, params) {
