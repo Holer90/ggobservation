@@ -1,10 +1,14 @@
+
 # Title     : geom_observation.R
 # Objective : Create geom_observation, which adds the number of observations to each group.
 # Created by: tho
 # Created on: 14/9/2021
 
-library(tidyverse)
-library(grid)
+#library(tidyverse)
+#library(grid)
+
+library(ggplot2)
+library(dplyr)
 
 #' @rdname ggplot2-ggproto
 #' @format NULL
@@ -14,7 +18,7 @@ StatObservationByPanel <- ggproto("StatObservationByPanel", Stat,
   extra_params = c("na.rm", "prefix", "suffix", "separation_factor"),
   compute_panel = function(data, scales) {
     data %>% 
-      drop_na(one_of("x", "y")) %>%
+      tidyr::drop_na(one_of("x", "y")) %>%
       summarize(label=n(), x = max(data$x, na.rm = TRUE), y = max(data$y, na.rm = TRUE)) 
   },
   finish_layer = function(self, data, params) {
@@ -31,7 +35,7 @@ StatObservationByGroup <- ggproto("StatObservationByGroup", Stat,
   extra_params = c("na.rm", "prefix", "suffix", "separation_factor"),
   compute_group = function(data, scales) {
     data %>% 
-      drop_na(one_of("x", "y")) %>%
+      tidyr::drop_na(one_of("x", "y")) %>%
       summarize(label=n(), x = max(data$x, na.rm = TRUE), y = max(data$y, na.rm = TRUE))
   },
   finish_layer = function(self, data, params) {
@@ -49,31 +53,42 @@ GeomObservation <- ggproto("GeomObservation", GeomText,
   draw_panel = function(data, panel_params, coord, parse = FALSE,
                         na.rm = FALSE, check_overlap = FALSE) {
       
-    if (data$force_position[[1]]) {
-      
-      # replace the x-coordinate
-      if (data$hjust[[1]] == "left") {
-        data$x <- panel_params$x$limits[[1]]
-      } else if (data$hjust[[1]] == "middle") {
-        data$x <- panel_params$x$limits %>% mean() # NOTE: This may fail with "categorical" data
-      } else if (data$hjust[[1]] == "right") {
-        data$x <- panel_params$x$limits[[2]]
-      }
-      
-      # replace the y-coordinate
-      if (data$vjust[[1]] == "top") {
-        data$y <- panel_params$y$limits[[2]]
-        data <- data %>% mutate(y = y + lineheight * separation_factor * seq(0, -n()+1))
-      } else if (data$vjust[[1]] == "center") {
-        data$y <- panel_params$y$limits %>% mean()
-        data <- data %>% mutate(y = y + lineheight * separation_factor * seq(ceiling( (n()-1)/2 ), -floor( (n()-1)/2 )))
-      } else if (data$vjust[[1]] == "bottom") {
-        data$y <- panel_params$y$limits[[1]]
-        data <- data %>% mutate(y = y + lineheight * separation_factor * seq(0, n()-1))
-      } 
-    }
     
-    data_persist_new <<- data
+    #data_persist <<- data
+    #panel_params_persist <<- panel_params
+    #coord_persist <<- coord
+
+    # Convert hjust and vjust to numeric if character
+    if (is.character(data$hjust)) {
+      data$hjust <- compute_just(data$hjust, data$x)
+    }
+    if (is.character(data$vjust)) {
+     data$vjust <- compute_just(data$vjust, data$y)
+    }
+
+    # Move the label to forced position.
+    if (data$force_position[[1]]) {
+      x_min <- panel_params$x$limits[[1]]
+      x_max <- panel_params$x$limits[[2]]
+      data$x <- x_min + data$hjust * (x_max - x_min)
+
+
+      y_min <- panel_params$y$limits[[1]]
+      y_max <- panel_params$y$limits[[2]]
+      data$y<- y_min + data$vjust * (y_max - y_min)
+
+      # Move the annotations if there are multiple
+      if (nrow(data) > 1) {
+        y_range <- panel_params$y$limits[[2]] - panel_params$y$limits[[1]]
+        if (data$vjust[[1]] < 0.5) {
+          data <- data %>% mutate(y = y +  y_range * 0.01 * size * separation_factor * seq(0, n() - 1))
+        } else {
+          data <- data %>% mutate(y = y +  y_range * 0.01 * size * separation_factor * seq(0, 1 - n()))
+
+        }
+      }
+    }
+
     
     lab <- data$label
     if (parse) {
@@ -82,12 +97,6 @@ GeomObservation <- ggproto("GeomObservation", GeomText,
     
     data <- coord$transform(data, panel_params)
     
-    if (is.character(data$vjust)) {
-      data$vjust <- compute_just(data$vjust, data$y, data$x, data$angle)
-    }
-    if (is.character(data$hjust)) {
-      data$hjust <- compute_just(data$hjust, data$x, data$y, data$angle)
-    }
     
     grid::textGrob(
       lab,
@@ -126,8 +135,7 @@ geom_observation <- function(mapping = NULL, data = NULL, position = "identity",
       params = list(na.rm = na.rm, 
                     prefix = prefix,
                     suffix = suffix,
-                    separation_factor = separation_factor,
-                    ... )
+                    separation_factor = separation_factor,                    ... )
     ) 
   } else {
     layer(
