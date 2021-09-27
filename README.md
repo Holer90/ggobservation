@@ -35,8 +35,6 @@ These settings are available to `geom_observation()`.
 
 
 ## Tasks
-* Write documentation
-* Add Examples with pictures to README
 * Fix spacing for `compute = "group"`, and deprecate `separation_factor`.
 * Do I need the helper functions, or do I get them by loading tidyverse?
 * Add `label` setting, which extend geom_label instead of geom_text.
