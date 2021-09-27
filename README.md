@@ -1,14 +1,27 @@
 # ggobservation
 
 ## Overview
-`ggobservation` extends `ggplot2` with the `geom_observation()` function, which adds the number of observations to the plot.
+ggobservation is an extension for ggplot2 which count the number of observations and plots it using the `geom_observation()` function.
 
 ## Installation
 ```{r}
-library(devtools)
-install_github("Holer90/ggobservation")
+# This package should be installed from GitHub:
+# install.packages("devtools")
+devools::install_github("Holer90/ggobservation")
 ```
 
+## Usage
+To use ggobservation simply add the `geom_observation()` layer to the plot. The underlying stat (counting) is automatically calculated for all panels or groups, so it integrates with `colour` and `facets`.
+```
+library(ggplot2)
+library(ggobservation)
+
+ggplot(mpg, aes(displ, hwy, colour = drv)) + 
+  geom_point() + 
+  geom_observation()
+```
+
+![](man/README-example-1.png)
 
 ## Settings
 These settings are available to `geom_observation()`.
@@ -19,9 +32,6 @@ These settings are available to `geom_observation()`.
 * `prefix`: (string, default: `"n = "`) the prefix before the count.
 * `suffix`: (string, default: `""`) the suffix after the count.
 * `separation_factor`: (number, default: `1`) the separation of annotations when there are multiple groups in a single panel.
-
-## Examples
-//todo
 
 
 ## Tasks
